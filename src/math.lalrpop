@@ -1,0 +1,104 @@
+use crate::parser::ast::{BinaryOp, Expr, Num, Term, ProbGenerator};
+use yajlish::ndjson_handler;
+use lalrpop_util::ParseError;
+
+grammar;
+
+pub Float: f64 = r"[0-9]+([\.]|[e][-]?)[0-9]+" =>? {
+    <>.parse::<f64>()
+        .map_err(|_| ParseError::User {
+            error: "f64 failed to parse"
+        })
+};
+
+pub PosInt: u64 = r"[0-9]+" =>? {
+    <>.parse::<u64>()
+        .map_err(|_| ParseError::User {
+            error: "u64 failed to parse"
+        })
+};
+
+pub Int: i64 = r"[-][0-9]+" =>? {
+    <>.parse::<i64>()
+        .map_err(|_| ParseError::User {
+            error: "i64 failed to parse"
+        })
+};
+
+pub Num: Num = {
+    <f:Float> => Num::Float(f),
+    <p:PosInt> => Num::PosInt(p),
+    <i:Int> => Num::Int(i),
+};
+
+
+pub IdentifierToken: ndjson_handler::Selector = r"\.[^\[\./\*\+\^ -]+" => ndjson_handler::Selector::Identifier(Into::into(<>.trim_start_matches('.')));
+
+pub ArrayToken: ndjson_handler::Selector = {
+    r"\[[0-9]+\]" =>? <>.trim_end_matches(']')
+        .trim_start_matches('[')
+        .parse::<usize>()
+        .map_err(|_| ParseError::User {
+        error: "Index too big",
+    }).map(ndjson_handler::Selector::Index)
+};
+
+EitherToken: ndjson_handler::Selector = {
+    <i:IdentifierToken> => i,
+    <a:ArrayToken> => a,
+}
+
+pub Selector: Vec<ndjson_handler::Selector> = {
+    "d" <r: EitherToken *> => {
+        r
+    },
+}
+
+pub Term: Box<Expr> = {
+    <n:Num> => Box::new(Expr::Term(Term::Num(n))),
+    <s:Selector> => Box::new(Expr::Term(Term::Value(s))),
+    <p:ProbGenerator> => Box::new(Expr::Term(Term::ProbGenerator(p))),
+    "(" <e:Expr> ")" => e,
+}
+
+pub ProbGenerator: ProbGenerator = {
+    "rbern(" <arg1:Argument<"seed", PosInt>> "," <arg2:Argument<"prob", Float>> ")" => ProbGenerator::RBern { seed: arg1.1, prob: arg2.1},
+    "rbern(" <arg2:Argument<"prob", Float>> "," <arg1:Argument<"seed", PosInt>> ")" => ProbGenerator::RBern { seed: arg1.1, prob: arg2.1},
+
+};
+
+Argument<Name, Value>: (Name, Value) = {
+    <n:Name> "=" <v:Value> => (n, v)
+};
+
+ExprMac<NextTier, Op>: Box<Expr> = {
+    NextTier,
+    <e:ExprMac<NextTier, Op>> <o:Op> <n:NextTier> => Box::new(Expr::Op(e, o, n)),
+}
+
+pub Expr: Box<Expr> = {
+    ExprMac<Tier2, Tier1Op>,
+};
+
+Tier1Op: BinaryOp = {
+   "+" => BinaryOp::Add,
+   "-" => BinaryOp::Sub,
+};
+
+Tier2: Box<Expr> = {
+    ExprMac<Tier3, Tier2Op>,
+};
+
+Tier2Op: BinaryOp = {
+    "*" => BinaryOp::Mul,
+    "/" => BinaryOp::Div,
+};
+
+Tier3Op: BinaryOp = {
+    "^" => BinaryOp::Pow,
+};
+
+Tier3: Box<Expr> = {
+    Term,
+    <s:Tier3> <o:Tier3Op> <t:Term> => Box::new(Expr::Op(s, o, t)),
+};
