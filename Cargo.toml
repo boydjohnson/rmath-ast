@@ -5,4 +5,8 @@ edition = "2021"
 
 [dependencies]
 nom = "7.0"
+lalrpop-util = { version = "0.19", features = ["lexer"] }
 yajlish = { git = "https://github.com/boydjohnson/yajlish", features = ["ndjson"] }
+
+[build-dependencies]
+lalrpop = { version = "0.19", features = ["lexer"] }
