@@ -1,10 +1,11 @@
+use ordered_float::OrderedFloat;
 use yajlish::ndjson_handler::Selector;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord)]
 pub enum Num {
-    Float(f64),
     PosInt(u64),
     Int(i64),
+    Float(OrderedFloat<f64>),
 }
 
 #[derive(Debug, PartialEq)]

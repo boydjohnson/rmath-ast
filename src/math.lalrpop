@@ -1,6 +1,7 @@
 use crate::parser::ast::{BinaryOp, Expr, Num, Term, ProbGenerator};
 use yajlish::ndjson_handler;
 use lalrpop_util::ParseError;
+use ordered_float::OrderedFloat;
 
 grammar;
 
@@ -26,7 +27,7 @@ pub Int: i64 = r"[-][0-9]+" =>? {
 };
 
 pub Num: Num = {
-    <f:Float> => Num::Float(f),
+    <f:Float> => Num::Float(OrderedFloat(f)),
     <p:PosInt> => Num::PosInt(p),
     <i:Int> => Num::Int(i),
 };

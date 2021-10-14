@@ -10,6 +10,7 @@ pub use self::math::ExprParser;
 mod tests {
     use super::math::{ExprParser, FloatParser, IntParser, NumParser, PosIntParser, TermParser};
     use crate::parser::ast::{BinaryOp, Expr, Num, ProbGenerator, Term};
+    use ordered_float::OrderedFloat;
     use yajlish::ndjson_handler::Selector;
 
     #[test]
@@ -47,8 +48,14 @@ mod tests {
     #[test]
     fn test_num_parser() {
         assert_eq!(NumParser::new().parse("4564345"), Ok(Num::PosInt(4564345)));
-        assert_eq!(NumParser::new().parse("0.0456400"), Ok(Num::Float(0.04564)));
-        assert_eq!(NumParser::new().parse("345e-3"), Ok(Num::Float(0.345)));
+        assert_eq!(
+            NumParser::new().parse("0.0456400"),
+            Ok(Num::Float(OrderedFloat(0.04564)))
+        );
+        assert_eq!(
+            NumParser::new().parse("345e-3"),
+            Ok(Num::Float(OrderedFloat(0.345)))
+        );
         assert_eq!(NumParser::new().parse("-345"), Ok(Num::Int(-345)));
 
         assert!(NumParser::new().parse("-345-").is_err());
