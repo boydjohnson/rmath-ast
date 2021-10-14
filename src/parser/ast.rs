@@ -8,6 +8,14 @@ pub enum Num {
     Float(OrderedFloat<f64>),
 }
 
+#[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Ord)]
+pub enum Value {
+    Bool(bool),
+    String(String),
+    Num(Num),
+    Null,
+}
+
 #[derive(Debug, PartialEq)]
 pub enum Term {
     Num(Num),
@@ -19,11 +27,11 @@ pub enum Term {
 pub enum Expr {
     Term(Term),
     Op(Box<Expr>, BinaryOp, Box<Expr>),
-    UnaryOp(UnaryOp, Box<Expr>),
+    UnaryFunction(UnaryFunction, Box<Expr>),
 }
 
 #[derive(Debug, PartialEq)]
-pub enum UnaryOp {
+pub enum UnaryFunction {
     Abs,
     Sqrt,
     Ceiling,
