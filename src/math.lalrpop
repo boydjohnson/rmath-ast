@@ -57,7 +57,7 @@ pub Selector: Vec<ndjson_handler::Selector> = {
 
 pub Term: Box<Expr> = {
     <n:Num> => Box::new(Expr::Term(Term::Num(n))),
-    <s:Selector> => Box::new(Expr::Term(Term::Value(s))),
+    <s:Selector> => Box::new(Expr::Term(Term::Selector(s))),
     <p:ProbGenerator> => Box::new(Expr::Term(Term::ProbGenerator(p))),
     "(" <e:Expr> ")" => e,
 }

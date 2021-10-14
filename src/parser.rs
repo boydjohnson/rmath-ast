@@ -65,7 +65,7 @@ mod tests {
     fn test_term_parser() {
         assert_eq!(
             TermParser::new().parse("d.manager.salary"),
-            Ok(Box::new(Expr::Term(Term::Value(vec![
+            Ok(Box::new(Expr::Term(Term::Selector(vec![
                 Selector::Identifier("manager".into()),
                 Selector::Identifier("salary".into())
             ])))),
@@ -101,7 +101,7 @@ mod tests {
             ExprParser::new().parse("(d.TOTAL_SALES + 5) / rbern(prob = 0.2, seed=5)"),
             Ok(Box::new(Expr::Op(
                 Box::new(Expr::Op(
-                    Box::new(Expr::Term(Term::Value(vec![Selector::Identifier(
+                    Box::new(Expr::Term(Term::Selector(vec![Selector::Identifier(
                         "TOTAL_SALES".into()
                     )]))),
                     BinaryOp::Add,

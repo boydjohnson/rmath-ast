@@ -11,7 +11,7 @@ pub enum Num {
 #[derive(Debug, PartialEq)]
 pub enum Term {
     Num(Num),
-    Value(Vec<Selector>),
+    Selector(Vec<Selector>),
     ProbGenerator(ProbGenerator),
 }
 
