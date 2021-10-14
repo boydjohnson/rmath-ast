@@ -1,6 +1,7 @@
 use crate::parser::ast::{BinaryOp, Expr, Num, Term, ProbGenerator};
 use yajlish::ndjson_handler;
 use lalrpop_util::ParseError;
+use ordered_float::OrderedFloat;
 
 grammar;
 
@@ -26,7 +27,7 @@ pub Int: i64 = r"[-][0-9]+" =>? {
 };
 
 pub Num: Num = {
-    <f:Float> => Num::Float(f),
+    <f:Float> => Num::Float(OrderedFloat(f)),
     <p:PosInt> => Num::PosInt(p),
     <i:Int> => Num::Int(i),
 };
@@ -56,7 +57,7 @@ pub Selector: Vec<ndjson_handler::Selector> = {
 
 pub Term: Box<Expr> = {
     <n:Num> => Box::new(Expr::Term(Term::Num(n))),
-    <s:Selector> => Box::new(Expr::Term(Term::Value(s))),
+    <s:Selector> => Box::new(Expr::Term(Term::Selector(s))),
     <p:ProbGenerator> => Box::new(Expr::Term(Term::ProbGenerator(p))),
     "(" <e:Expr> ")" => e,
 }

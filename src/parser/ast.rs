@@ -1,16 +1,25 @@
+use ordered_float::OrderedFloat;
 use yajlish::ndjson_handler::Selector;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord)]
 pub enum Num {
-    Float(f64),
     PosInt(u64),
     Int(i64),
+    Float(OrderedFloat<f64>),
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Ord)]
+pub enum Value {
+    Bool(bool),
+    String(String),
+    Num(Num),
+    Null,
 }
 
 #[derive(Debug, PartialEq)]
 pub enum Term {
     Num(Num),
-    Value(Vec<Selector>),
+    Selector(Vec<Selector>),
     ProbGenerator(ProbGenerator),
 }
 
@@ -18,11 +27,11 @@ pub enum Term {
 pub enum Expr {
     Term(Term),
     Op(Box<Expr>, BinaryOp, Box<Expr>),
-    UnaryOp(UnaryOp, Box<Expr>),
+    UnaryFunction(UnaryFunction, Box<Expr>),
 }
 
 #[derive(Debug, PartialEq)]
-pub enum UnaryOp {
+pub enum UnaryFunction {
     Abs,
     Sqrt,
     Ceiling,

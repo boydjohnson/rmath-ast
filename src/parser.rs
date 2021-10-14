@@ -10,6 +10,7 @@ pub use self::math::ExprParser;
 mod tests {
     use super::math::{ExprParser, FloatParser, IntParser, NumParser, PosIntParser, TermParser};
     use crate::parser::ast::{BinaryOp, Expr, Num, ProbGenerator, Term};
+    use ordered_float::OrderedFloat;
     use yajlish::ndjson_handler::Selector;
 
     #[test]
@@ -47,8 +48,14 @@ mod tests {
     #[test]
     fn test_num_parser() {
         assert_eq!(NumParser::new().parse("4564345"), Ok(Num::PosInt(4564345)));
-        assert_eq!(NumParser::new().parse("0.0456400"), Ok(Num::Float(0.04564)));
-        assert_eq!(NumParser::new().parse("345e-3"), Ok(Num::Float(0.345)));
+        assert_eq!(
+            NumParser::new().parse("0.0456400"),
+            Ok(Num::Float(OrderedFloat(0.04564)))
+        );
+        assert_eq!(
+            NumParser::new().parse("345e-3"),
+            Ok(Num::Float(OrderedFloat(0.345)))
+        );
         assert_eq!(NumParser::new().parse("-345"), Ok(Num::Int(-345)));
 
         assert!(NumParser::new().parse("-345-").is_err());
@@ -58,7 +65,7 @@ mod tests {
     fn test_term_parser() {
         assert_eq!(
             TermParser::new().parse("d.manager.salary"),
-            Ok(Box::new(Expr::Term(Term::Value(vec![
+            Ok(Box::new(Expr::Term(Term::Selector(vec![
                 Selector::Identifier("manager".into()),
                 Selector::Identifier("salary".into())
             ])))),
@@ -94,7 +101,7 @@ mod tests {
             ExprParser::new().parse("(d.TOTAL_SALES + 5) / rbern(prob = 0.2, seed=5)"),
             Ok(Box::new(Expr::Op(
                 Box::new(Expr::Op(
-                    Box::new(Expr::Term(Term::Value(vec![Selector::Identifier(
+                    Box::new(Expr::Term(Term::Selector(vec![Selector::Identifier(
                         "TOTAL_SALES".into()
                     )]))),
                     BinaryOp::Add,
