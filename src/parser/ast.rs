@@ -74,7 +74,7 @@ pub enum BinaryOp {
 #[derive(Debug, PartialEq)]
 pub enum ProbGenerator {
     RBern { seed: u64, prob: f64 },
-    RBeta { seed: u64, shape1: u64, shape2: u64 },
+    RBeta { seed: u64, shape1: f64, shape2: f64 },
     RBinom { seed: u64, size: u64, prob: f64 },
     RCauchey { seed: u64, scale: u64 },
     RChiSq { seed: u64, df: u64 },

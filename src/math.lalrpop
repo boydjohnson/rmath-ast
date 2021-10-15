@@ -63,10 +63,25 @@ pub Term: Box<Expr> = {
 }
 
 pub ProbGenerator: ProbGenerator = {
-    "rbern(" <arg1:Argument<"seed", PosInt>> "," <arg2:Argument<"prob", Float>> ")" => ProbGenerator::RBern { seed: arg1.1, prob: arg2.1},
-    "rbern(" <arg2:Argument<"prob", Float>> "," <arg1:Argument<"seed", PosInt>> ")" => ProbGenerator::RBern { seed: arg1.1, prob: arg2.1},
-
+    "rbern(" <a:TwoArguments<"seed", PosInt, "prob", Float>> ")" => ProbGenerator::RBern { seed: a.0.1, prob: a.1.1},
+    "rbeta(" <a:ThreeArguments<"seed", PosInt, "shape1", Float, "shape2", Float>> ")" => ProbGenerator::RBeta { seed: a.0.1, shape1: a.1.1, shape2: a.2.1 }, 
+    "rbinom(" <a:ThreeArguments<"seed", PosInt, "size", PosInt, "prob", Float>> ")" => ProbGenerator::RBinom { seed: a.0.1, size: a.1.1, prob: a.2.1 },
+    "rcauchey(" <a:TwoArguments<"seed", PosInt, "scale", PosInt>> ")" => ProbGenerator::RCauchey { seed: a.0.1, scale: a.1.1 }
 };
+
+TwoArguments<Name1, Value1, Name2, Value2>: ((Name1, Value1), (Name2, Value2)) = {
+    <arg1:Argument<Name1, Value1>> "," <arg2:Argument<Name2, Value2>> => (arg1, arg2),
+    <arg2:Argument<Name2, Value2>> "," <arg1:Argument<Name1, Value1>> => (arg1, arg2),
+}
+
+ThreeArguments<Name1, Value1, Name2, Value2, Name3, Value3>: ((Name1, Value1), (Name2, Value2), (Name3, Value3)) = {
+    <arg1:Argument<Name1, Value1>> "," <arg2:Argument<Name2, Value2>> "," <arg3:Argument<Name3, Value3>> => (arg1, arg2, arg3),
+    <arg1:Argument<Name1, Value1>> "," <arg3:Argument<Name3, Value3>> "," <arg2:Argument<Name2, Value2>> => (arg1, arg2, arg3),
+    <arg2:Argument<Name2, Value2>> "," <arg1:Argument<Name1, Value1>> "," <arg3:Argument<Name3, Value3>> => (arg1, arg2, arg3),
+    <arg2:Argument<Name2, Value2>> "," <arg3:Argument<Name3, Value3>> "," <arg1:Argument<Name1, Value1>> => (arg1, arg2, arg3),
+    <arg3:Argument<Name3, Value3>> "," <arg1:Argument<Name1, Value1>> "," <arg2:Argument<Name2, Value2>> => (arg1, arg2, arg3),
+    <arg3:Argument<Name3, Value3>> "," <arg2:Argument<Name2, Value2>> "," <arg1:Argument<Name1, Value1>> => (arg1, arg2, arg3),
+}
 
 Argument<Name, Value>: (Name, Value) = {
     <n:Name> "=" <v:Value> => (n, v)
