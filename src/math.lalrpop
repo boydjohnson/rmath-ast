@@ -109,7 +109,7 @@ Tier2Op: BinaryOp = {
 };
 
 Tier3Op: BinaryOp = {
-    "^" => BinaryOp::Pow,
+    "**" => BinaryOp::Pow,
 };
 
 Tier3: Box<Expr> = {

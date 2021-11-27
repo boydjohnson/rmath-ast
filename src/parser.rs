@@ -107,6 +107,27 @@ mod tests {
             ))),
         );
 
+        assert_eq!(
+            ExprParser::new().parse("(3.4 + 5) ** 5 / 4.5"),
+            Ok(Box::new(Expr::Op(
+                Box::new(Expr::Op(
+                    Box::new(Expr::Op(
+                        Box::new(Expr::Term(Term::Value(Value::Num(Num::Float(
+                            OrderedFloat(3.4)
+                        ))))),
+                        BinaryOp::Add,
+                        Box::new(Expr::Term(Term::Value(Value::Num(Num::PosInt(5)))))
+                    )),
+                    BinaryOp::Pow,
+                    Box::new(Expr::Term(Term::Value(Value::Num(Num::PosInt(5)))))
+                )),
+                BinaryOp::Div,
+                Box::new(Expr::Term(Term::Value(Value::Num(Num::Float(
+                    OrderedFloat(4.5)
+                )))))
+            )))
+        );
+
         assert!(ExprParser::new()
             .parse("(d.TOTAL_SALES + ) / false")
             .is_err());
