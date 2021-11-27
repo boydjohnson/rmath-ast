@@ -9,7 +9,7 @@ pub use self::math::ExprParser;
 #[cfg(test)]
 mod tests {
     use super::math::{ExprParser, FloatParser, IntParser, NumParser, PosIntParser, TermParser};
-    use crate::parser::ast::{BinaryOp, Expr, Num, ProbGenerator, Term};
+    use crate::parser::ast::{BinaryOp, Expr, Num, Term, Value};
     use ordered_float::OrderedFloat;
     use yajlish::ndjson_handler::Selector;
 
@@ -72,13 +72,8 @@ mod tests {
         );
 
         assert_eq!(
-            TermParser::new().parse("rbern( seed = 645, prob = 0.5)"),
-            Ok(Box::new(Expr::Term(Term::ProbGenerator(
-                ProbGenerator::RBern {
-                    seed: 645,
-                    prob: 0.5
-                }
-            )))),
+            TermParser::new().parse("true"),
+            Ok(Box::new(Expr::Term(Term::Value(Value::Bool(true)))))
         );
     }
 
@@ -87,36 +82,33 @@ mod tests {
         assert_eq!(
             ExprParser::new().parse("7 + 5 * 9"),
             Ok(Box::new(Expr::Op(
-                Box::new(Expr::Term(Term::Num(Num::PosInt(7)))),
+                Box::new(Expr::Term(Term::Value(Value::Num(Num::PosInt(7))))),
                 BinaryOp::Add,
                 Box::new(Expr::Op(
-                    Box::new(Expr::Term(Term::Num(Num::PosInt(5)))),
+                    Box::new(Expr::Term(Term::Value(Value::Num(Num::PosInt(5))))),
                     BinaryOp::Mul,
-                    Box::new(Expr::Term(Term::Num(Num::PosInt(9))))
+                    Box::new(Expr::Term(Term::Value(Value::Num(Num::PosInt(9)))))
                 ))
             ))),
         );
 
         assert_eq!(
-            ExprParser::new().parse("(d.TOTAL_SALES + 5) / rbern(prob = 0.2, seed=5)"),
+            ExprParser::new().parse("(d.TOTAL_SALES + 5) / \"dough\""),
             Ok(Box::new(Expr::Op(
                 Box::new(Expr::Op(
                     Box::new(Expr::Term(Term::Selector(vec![Selector::Identifier(
                         "TOTAL_SALES".into()
                     )]))),
                     BinaryOp::Add,
-                    Box::new(Expr::Term(Term::Num(Num::PosInt(5))))
+                    Box::new(Expr::Term(Term::Value(Value::Num(Num::PosInt(5)))))
                 )),
                 BinaryOp::Div,
-                Box::new(Expr::Term(Term::ProbGenerator(ProbGenerator::RBern {
-                    seed: 5,
-                    prob: 0.2
-                })))
+                Box::new(Expr::Term(Term::Value(Value::String("dough".into())))),
             ))),
         );
 
         assert!(ExprParser::new()
-            .parse("(d.TOTAL_SALES + ) / rbern(prob = 0.2, seed = 5)")
+            .parse("(d.TOTAL_SALES + ) / false")
             .is_err());
     }
 }
