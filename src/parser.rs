@@ -9,7 +9,7 @@ pub use self::math::ExprParser;
 #[cfg(test)]
 mod tests {
     use super::math::{ExprParser, FloatParser, IntParser, NumParser, PosIntParser, TermParser};
-    use crate::parser::ast::{BinaryOp, Expr, Num, Term, Value};
+    use crate::parser::ast::{BinaryOp, Expr, Num, Term, UnaryFunction, Value};
     use ordered_float::OrderedFloat;
     use yajlish::ndjson_handler::Selector;
 
@@ -107,8 +107,61 @@ mod tests {
             ))),
         );
 
+        assert_eq!(
+            ExprParser::new().parse("(3.4 + 5) ** 5 / 4.5"),
+            Ok(Box::new(Expr::Op(
+                Box::new(Expr::Op(
+                    Box::new(Expr::Op(
+                        Box::new(Expr::Term(Term::Value(Value::Num(Num::Float(
+                            OrderedFloat(3.4)
+                        ))))),
+                        BinaryOp::Add,
+                        Box::new(Expr::Term(Term::Value(Value::Num(Num::PosInt(5)))))
+                    )),
+                    BinaryOp::Pow,
+                    Box::new(Expr::Term(Term::Value(Value::Num(Num::PosInt(5)))))
+                )),
+                BinaryOp::Div,
+                Box::new(Expr::Term(Term::Value(Value::Num(Num::Float(
+                    OrderedFloat(4.5)
+                )))))
+            )))
+        );
+
         assert!(ExprParser::new()
             .parse("(d.TOTAL_SALES + ) / false")
             .is_err());
+    }
+
+    #[test]
+    fn test_expr_with_unary_functions() {
+        assert_eq!(
+            ExprParser::new().parse("toint(3.4)"),
+            Ok(Box::new(Expr::UnaryFunction(
+                UnaryFunction::ToInt,
+                Box::new(Expr::Term(Term::Value(Value::Num(Num::Float(
+                    OrderedFloat(3.4)
+                )))))
+            )))
+        );
+
+        assert_eq!(
+            ExprParser::new().parse("ceil(4.5) + floor(4.5)"),
+            Ok(Box::new(Expr::Op(
+                Box::new(Expr::UnaryFunction(
+                    UnaryFunction::Ceil,
+                    Box::new(Expr::Term(Term::Value(Value::Num(Num::Float(
+                        OrderedFloat(4.5)
+                    )))))
+                )),
+                BinaryOp::Add,
+                Box::new(Expr::UnaryFunction(
+                    UnaryFunction::Floor,
+                    Box::new(Expr::Term(Term::Value(Value::Num(Num::Float(
+                        OrderedFloat(4.5)
+                    )))))
+                ))
+            )))
+        );
     }
 }

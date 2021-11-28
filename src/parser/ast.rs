@@ -35,6 +35,7 @@ pub enum UnaryFunction {
     Sqrt,
     Ceiling,
     Floor,
+    Ceil,
     Trunc,
     Cos,
     Sin,
@@ -53,11 +54,12 @@ pub enum UnaryFunction {
     Exp,
     ToUpper,
     ToLower,
+    Capitalize,
     ToString,
-    IsDouble,
+    IsFloat,
     IsFloatNan,
     IsNull,
-    ToDouble,
+    ToFloat,
     ToInt,
 }
 

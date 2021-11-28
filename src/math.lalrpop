@@ -1,4 +1,4 @@
-use crate::parser::ast::{BinaryOp, Expr, Num, Term, Value};
+use crate::parser::ast::{BinaryOp, Expr, Num, Term, Value, UnaryFunction};
 use yajlish::ndjson_handler;
 use lalrpop_util::ParseError;
 use ordered_float::OrderedFloat;
@@ -79,6 +79,7 @@ pub Term: Box<Expr> = {
     <n:ValueToken> => Box::new(Expr::Term(Term::Value(n))),
     <s:Selector> => Box::new(Expr::Term(Term::Selector(s))),
     "(" <e:Expr> ")" => e,
+    <u: UnaryFunction> "(" <e: Expr> ")" => Box::new(Expr::UnaryFunction(u, e)),
 }
 
 Argument<Name, Value>: (Name, Value) = {
@@ -109,10 +110,45 @@ Tier2Op: BinaryOp = {
 };
 
 Tier3Op: BinaryOp = {
-    "^" => BinaryOp::Pow,
+    "**" => BinaryOp::Pow,
 };
 
 Tier3: Box<Expr> = {
     Term,
     <s:Tier3> <o:Tier3Op> <t:Term> => Box::new(Expr::Op(s, o, t)),
+};
+
+UnaryFunction: UnaryFunction = r"(abs|sqrt|floor|ceil|trunc|cos|sin|tan|acos|asin|atan|cosh|sinh|tanh|acosh|asinh|atanh|log|log10|exp|toupper|tolower|capitalize|tostring|isfloat|isfloatnan|isnull|tofloat|toint)" => {
+    match <> {
+        "abs" => UnaryFunction::Abs,
+        "sqrt" => UnaryFunction::Sqrt,
+        "floor" => UnaryFunction::Floor,
+        "ceil" => UnaryFunction::Ceil,
+        "trunc" => UnaryFunction::Trunc,
+        "cos" => UnaryFunction::Cos,
+        "sin" => UnaryFunction::Sin,
+        "tan" => UnaryFunction::Tan,
+        "acos" => UnaryFunction::ACos,
+        "asin" => UnaryFunction::ASin,
+        "atan" => UnaryFunction::ATan,
+        "cosh" => UnaryFunction::Cosh,
+        "sinh" => UnaryFunction::Sinh,
+        "tanh" => UnaryFunction::Tanh,
+        "acosh" => UnaryFunction::ACosh,
+        "asinh" => UnaryFunction::ASinh,
+        "atanh" => UnaryFunction::ATanh,
+        "log" => UnaryFunction::Log,
+        "log10" => UnaryFunction::Log10,
+        "exp" => UnaryFunction::Exp,
+        "toupper" => UnaryFunction::ToUpper,
+        "tolower" => UnaryFunction::ToLower,
+        "capitalize" => UnaryFunction::Capitalize,
+        "tostring" => UnaryFunction::ToString,
+        "isfloat" => UnaryFunction::IsFloat,
+        "isfloatnan" => UnaryFunction::IsFloatNan,
+        "isnull" => UnaryFunction::IsNull,
+        "tofloat" => UnaryFunction::ToFloat,
+        "toint" => UnaryFunction::ToInt,
+        a => panic!("{} is not expected", a),
+    }
 };
