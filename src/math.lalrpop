@@ -1,4 +1,4 @@
-use crate::parser::ast::{BinaryOp, Expr, Num, Term, ProbGenerator};
+use crate::parser::ast::{BinaryOp, Expr, Num, Term, Value};
 use yajlish::ndjson_handler;
 use lalrpop_util::ParseError;
 use ordered_float::OrderedFloat;
@@ -32,6 +32,26 @@ pub Num: Num = {
     <i:Int> => Num::Int(i),
 };
 
+Bool: bool = r"true|false" => {
+    match <> {
+        "true" => true,
+        "false" => false,
+        _ => panic!("Was not true or false"),
+    }
+};
+
+StringP: String = r#"".*""# => {
+    <>.trim_start_matches('"').trim_end_matches('"').to_string()
+};
+
+Null = r"[nN]ull";
+
+pub ValueToken: Value = {
+    <n: Num> => Value::Num(n),
+    <s: StringP> => Value::String(s),
+    <b: Bool> => Value::Bool(b),
+    <Null> => Value::Null,
+}
 
 pub IdentifierToken: ndjson_handler::Selector = r"\.[^\[\./\*\+\^ -]+" => ndjson_handler::Selector::Identifier(Into::into(<>.trim_start_matches('.')));
 
@@ -42,7 +62,7 @@ pub ArrayToken: ndjson_handler::Selector = {
         .map_err(|_| ParseError::User {
         error: "Index too big",
     }).map(ndjson_handler::Selector::Index)
-};
+}
 
 EitherToken: ndjson_handler::Selector = {
     <i:IdentifierToken> => i,
@@ -56,17 +76,10 @@ pub Selector: Vec<ndjson_handler::Selector> = {
 }
 
 pub Term: Box<Expr> = {
-    <n:Num> => Box::new(Expr::Term(Term::Num(n))),
+    <n:ValueToken> => Box::new(Expr::Term(Term::Value(n))),
     <s:Selector> => Box::new(Expr::Term(Term::Selector(s))),
-    <p:ProbGenerator> => Box::new(Expr::Term(Term::ProbGenerator(p))),
     "(" <e:Expr> ")" => e,
 }
-
-pub ProbGenerator: ProbGenerator = {
-    "rbern(" <arg1:Argument<"seed", PosInt>> "," <arg2:Argument<"prob", Float>> ")" => ProbGenerator::RBern { seed: arg1.1, prob: arg2.1},
-    "rbern(" <arg2:Argument<"prob", Float>> "," <arg1:Argument<"seed", PosInt>> ")" => ProbGenerator::RBern { seed: arg1.1, prob: arg2.1},
-
-};
 
 Argument<Name, Value>: (Name, Value) = {
     <n:Name> "=" <v:Value> => (n, v)
